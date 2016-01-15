@@ -10,6 +10,8 @@ from sqlalchemy import create_engine, Column, DateTime, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
+from webdriver_wharf.env import vnc_enabled, http_enabled
+
 logger = logging.getLogger(__name__)
 thread_local = local()
 Base = declarative_base()
@@ -63,11 +65,12 @@ class Container(Base):
 
     @property
     def port_bindings(self):
-        return {
-            80: self.http_port,
-            4444: self.webdriver_port,
-            5999: self.vnc_port,
-        }
+        port_bindings = { 4444: self.webdriver_port }
+        if vnc_enabled:
+            port_bindings[5999] = self.vnc_port
+        if http_enabled:
+            port_bindings[80] = self.http_port
+        return port_bindings
 
     @classmethod
     def from_id(cls, docker_id):

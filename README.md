@@ -43,6 +43,20 @@ Defaults to `cfmeqe/sel_ff_chrome`, but can be any docker image that exposes a s
 server on port 4444 and a VNC server on port 5999 (display :99). The `sel_ff_chrome`
 image also exposes nginx's json-based file browser on port 80.
 
+WEBDRIVER_WHARF_IMAGE_VNC_ENABLED
+---------------------------------
+
+Flag for if the docker image will explose a VNC service
+
+Defaults to True
+
+WEBDRIVER_WHARF_IMAGE_HTTP_ENABLED
+---------------------------------
+
+Flag for if the docker image will explose an HTTP service
+
+Defaults to True
+
 WEBDRIVER_WHARF_POOL_SIZE
 -------------------------
 

@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime
 from pkg_resources import require
 from threading import Thread
@@ -12,18 +11,11 @@ from pytz import utc
 from requests.exceptions import RequestException
 
 from webdriver_wharf import db, interactions, lock
+from webdriver_wharf.env import image_name, vnc_enabled, http_enabled, pool_size, max_checkout_time, pull_interval, rebalance_interval
 
 pool = set()
 logger = logging.getLogger(__name__)
-image_name = os.environ.get('WEBDRIVER_WHARF_IMAGE', 'cfmeqe/sel_ff_chrome')
-# Number of containers to have on "hot standby" for checkout
-pool_size = int(os.environ.get('WEBDRIVER_WHARF_POOL_SIZE', 4))
-# Max time for an appliance to be checked out before it's forcibly checked in, in seconds.
-max_checkout_time = int(os.environ.get('WEBDRIVER_WHARF_MAX_CHECKOUT_TIME', 3600))
-pull_interval = int(os.environ.get('WEBDRIVER_WHARF_IMAGE_PULL_INTERVAL', 3600))
-rebalance_interval = int(os.environ.get('WEBDRIVER_WHARF_REBALANCE_INTERVAL', 3600 * 6))
 no_content = ('', 204)
-
 application = Flask('webdriver-wharf')
 
 index_document = """
@@ -41,8 +33,13 @@ index_document = """
         checkin_url - URL to use to check the container back in when finished
         webdriver_port - integer port number of the webdriver server on this host
         webdriver_url - webdriver URL that can be injected as a selenium command_executor
+"""
+if vnc_enabled:
+    index_document += """
         vnc_port - integer port number of the VNC server for this webdriver container
         vnc_url - URL that might launch a VNC viewer when clicked
+"""
+index_document += """
 
     Renewal information will also be returned in this mapping, see /renew for more info
 
@@ -78,7 +75,6 @@ All views return JSON or nothing, and respond to POST and GET verbs
 
 </pre>
 """ % max_checkout_time
-
 
 @application.route('/checkout')
 def checkout():
@@ -172,18 +168,21 @@ def container_info(container):
     host = requesting_host()
     host_noport = host.split(':')[0]
 
-    return {
+    container_info = {
         'image_id': container.image_id,
         'checked_out': container.checked_out,
         'checkin_url': 'http://%s/checkin/%s' % (host, container.name),
         'renew_url': 'http://%s/renew/%s' % (host, container.name),
         'webdriver_port': container.webdriver_port,
         'webdriver_url': 'http://%s:%d/wd/hub' % (host_noport, container.webdriver_port),
-        'vnc_port': container.vnc_port,
-        'vnc_display': 'vnc://%s:%d' % (host_noport, container.vnc_port - 5900),
-        'http_port': container.http_port,
-        'fileviewer_url': 'http://%s:%d/' % (host_noport, container.http_port),
     }
+    if vnc_enabled:
+        container_info['vnc_port'] = container.vnc_port
+        container_info['vnc_display'] = 'vnc://%s:%d' % (host_noport, container.vnc_port - 5900)
+    if http_enabled:
+        container_info['http_port'] = container.http_port
+        container_info['fileviewer_url'] = 'http://%s:%d/' % (host_noport, container.http_port)
+    return container_info
 
 
 def keepalive(container):
