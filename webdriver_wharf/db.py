@@ -64,9 +64,9 @@ class Container(Base):
     @property
     def port_bindings(self):
         return {
-            80: self.http_port,
+            #80: self.http_port,
             4444: self.webdriver_port,
-            5999: self.vnc_port,
+            #5999: self.vnc_port,
         }
 
     @classmethod

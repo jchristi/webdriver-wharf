@@ -179,10 +179,10 @@ def container_info(container):
         'renew_url': 'http://%s/renew/%s' % (host, container.name),
         'webdriver_port': container.webdriver_port,
         'webdriver_url': 'http://%s:%d/wd/hub' % (host_noport, container.webdriver_port),
-        'vnc_port': container.vnc_port,
-        'vnc_display': 'vnc://%s:%d' % (host_noport, container.vnc_port - 5900),
-        'http_port': container.http_port,
-        'fileviewer_url': 'http://%s:%d/' % (host_noport, container.http_port),
+        #'vnc_port': container.vnc_port,
+        #'vnc_display': 'vnc://%s:%d' % (host_noport, container.vnc_port - 5900),
+        #'http_port': container.http_port,
+        #'fileviewer_url': 'http://%s:%d/' % (host_noport, container.http_port),
     }
 
 
